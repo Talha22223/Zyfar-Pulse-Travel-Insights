@@ -1,0 +1,27 @@
+{
+  "name": "zyfar-pulse-backend",
+  "version": "1.0.0",
+  "description": "Zyfar Pulse Survey System - Minimal Backend with JSON Storage",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop zyfar-pulse",
+    "pm2:restart": "pm2 restart zyfar-pulse",
+    "pm2:logs": "pm2 logs zyfar-pulse"
+  },
+  "keywords": ["survey", "zyfar", "pulse", "travel"],
+  "author": "Zyfar",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "pm2": "^5.3.0"
+  }
+}
