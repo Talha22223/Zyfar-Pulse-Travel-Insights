@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { SurveyCategory } from './types';
 import Header from './components/Header/Header';
 import CategorySelector from './components/CategorySelector/CategorySelector';
