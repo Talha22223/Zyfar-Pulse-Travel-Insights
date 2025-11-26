@@ -1,3 +1,4 @@
+// API configuration for Zyfar Pulse
 const API_BASE_URL = '/api';
 
 // Helper function for error handling
