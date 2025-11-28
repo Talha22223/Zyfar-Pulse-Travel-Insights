@@ -62,7 +62,7 @@ const CityPulseOverview: React.FC = () => {
         <h2 className={styles['section-title']}>City-Level Pulse Overview</h2>
 
         <div className={styles['tabs-container']}>
-          {tabs.map((tab) => (
+          {(tabs || []).map((tab) => (
             <button
               key={tab.id}
               className={`${styles['tab-button']} ${activeTab === tab.id ? styles.active : ''}`}
@@ -95,11 +95,11 @@ const CityPulseOverview: React.FC = () => {
           </div>
         </div>
 
-        {overview.trendingDestinations.length > 0 && (
+        {(overview?.trendingDestinations?.length ?? 0) > 0 && (
           <div className={styles['destinations-section']}>
             <h3 className={styles['destinations-title']}>Trending Destinations</h3>
             <div className={styles['destinations-grid']}>
-              {overview.trendingDestinations.map((dest, index) => (
+              {(overview?.trendingDestinations || []).map((dest, index) => (
                 <div key={index} className={styles['destination-card']}>
                   <div className={styles['destination-card-name']}>{dest.name}</div>
                   <div className={styles['destination-card-count']}>{dest.count} votes</div>

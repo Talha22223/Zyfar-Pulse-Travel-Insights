@@ -18,8 +18,8 @@ export const useScrollReveal = (ref: React.RefObject<HTMLElement>, threshold = 0
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+        (entries || []).forEach((entry) => {
+          if (entry?.isIntersecting && entry?.target) {
             entry.target.classList.add('revealed');
           }
         });
@@ -41,13 +41,16 @@ export const useScrollReveal = (ref: React.RefObject<HTMLElement>, threshold = 0
 export const scrollToElement = (elementId: string, offset = 0) => {
   const element = document.getElementById(elementId);
   if (element) {
-    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-    const offsetPosition = elementPosition - offset;
+    const rect = element.getBoundingClientRect();
+    if (rect) {
+      const elementPosition = rect.top + (window.pageYOffset || 0);
+      const offsetPosition = elementPosition - offset;
 
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth'
-    });
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   }
 };
 

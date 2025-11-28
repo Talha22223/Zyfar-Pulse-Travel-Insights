@@ -20,7 +20,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelectCategory })
     // Scroll reveal for cards
     if (!loading && sectionRef.current) {
       const cards = sectionRef.current.querySelectorAll(`.${styles['category-card']}`);
-      cards.forEach((card, index) => {
+      Array.from(cards || []).forEach((card, index) => {
         setTimeout(() => {
           card.classList.add('revealed');
         }, index * 100);
@@ -36,7 +36,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelectCategory })
       if (response.success && response.categories) {
         // Use categories directly from the response - they already have all needed properties
         setCategories(response.categories);
-        console.log('Categories loaded successfully:', response.categories.length);
+        console.log('Categories loaded successfully:', response?.categories?.length ?? 0);
       } else {
         console.error('Invalid response structure:', response);
       }
@@ -66,7 +66,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelectCategory })
         </p>
 
         <div className={styles['cards-container']}>
-          {categories.map((category, index) => (
+          {(categories || []).map((category, index) => (
             <div
               key={category.id}
               className={`${styles['category-card']} scroll-reveal-scale`}
@@ -77,7 +77,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelectCategory })
               <h3 className={styles['card-title']}>{category.title}</h3>
               <p className={styles['card-tagline']}>{category.tagline}</p>
               <p className={styles['card-questions']}>
-                {category.questions.length} question{category.questions.length > 1 ? 's' : ''}
+                {category?.questionCount ?? category?.questions?.length ?? 0} question{(category?.questionCount ?? category?.questions?.length ?? 0) > 1 ? 's' : ''}
               </p>
             </div>
           ))}

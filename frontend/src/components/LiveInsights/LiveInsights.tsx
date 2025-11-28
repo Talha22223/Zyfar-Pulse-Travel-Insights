@@ -57,7 +57,7 @@ const LiveInsights: React.FC<LiveInsightsProps> = ({ insight, category }) => {
 
   // Prepare data for the first question's pie chart
   const firstQuestionData = Object.values(stats.aggregated)[0] || [];
-  const pieData = firstQuestionData.map(item => ({
+  const pieData = (firstQuestionData || []).map(item => ({
     name: item.answer,
     value: item.count
   }));
@@ -76,7 +76,7 @@ const LiveInsights: React.FC<LiveInsightsProps> = ({ insight, category }) => {
 
           <div className={styles['charts-grid']}>
             {/* Pie Chart */}
-            {pieData.length > 0 && (
+            {(pieData?.length ?? 0) > 0 && (
               <div className={styles['chart-card']}>
                 <h3 className={styles['chart-title']}>Response Distribution</h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -91,8 +91,8 @@ const LiveInsights: React.FC<LiveInsightsProps> = ({ insight, category }) => {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {pieData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      {(pieData || []).map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % (COLORS?.length ?? 1)]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -102,11 +102,11 @@ const LiveInsights: React.FC<LiveInsightsProps> = ({ insight, category }) => {
             )}
 
             {/* Top Destinations */}
-            {stats.topDestinations.length > 0 && (
+            {(stats?.topDestinations?.length ?? 0) > 0 && (
               <div className={styles['chart-card']}>
                 <h3 className={styles['chart-title']}>Trending Destinations</h3>
                 <ul className={styles['destinations-list']}>
-                  {stats.topDestinations.slice(0, 5).map((dest, index) => (
+                  {(stats?.topDestinations || []).slice(0, 5).map((dest, index) => (
                     <li key={index} className={styles['destination-item']}>
                       <span className={styles['destination-name']}>{dest.name}</span>
                       <span className={styles['destination-count']}>{dest.count}</span>
@@ -117,7 +117,7 @@ const LiveInsights: React.FC<LiveInsightsProps> = ({ insight, category }) => {
             )}
 
             {/* Trend Line */}
-            {stats.trends.length > 0 && (
+            {(stats?.trends?.length ?? 0) > 0 && (
               <div className={styles['chart-card']} style={{ gridColumn: '1 / -1' }}>
                 <h3 className={styles['chart-title']}>Submission Trends (Last 30 Days)</h3>
                 <ResponsiveContainer width="100%" height={250}>

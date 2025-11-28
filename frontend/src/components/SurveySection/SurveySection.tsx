@@ -8,15 +8,15 @@ interface SurveySectionProps {
   onSubmitSurvey: (data: any) => Promise<void>;
 }
 
-const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey }) => {
+const SurveySection: React.FC<SurveySectionProps> = ({ category }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [city, setCity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [categoryWithQuestions, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
+  const [, setLoading] = useState(true);
   
   const questionContainerRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +63,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
   };
 
   const handleNext = () => {
-    if (!selectedOption) return;
+    if (!selectedOption || !questions || questions.length === 0) return;
 
     setIsTransitioning(true);
     
@@ -90,7 +90,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
     } else {
       setCurrentQuestion(currentQuestion - 1);
       setSelectedOption(answers[currentQuestion - 1] || '');
-      setAnswers(answers.slice(0, -1));
+      setAnswers((prev) => prev?.slice(0, -1) || []);
     }
   };
 
@@ -102,7 +102,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
     try {
       const response = await api.submitSurvey({
         category: category.id,
-        questions: questions.map(q => q.id),
+        questions: (questions || []).map(q => q?.id || '').filter(Boolean),
         answers,
         city: city.trim()
       });
@@ -130,7 +130,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
           </div>
 
           <div className={styles['progress-container']}>
-            {questions.map((_, index) => (
+            {(questions || []).map((_, index) => (
               <div
                 key={index}
                 className={`${styles['progress-dot']} ${
@@ -143,11 +143,11 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
           {!isCityInput ? (
             <div className={`${styles['question-container']} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`} key={currentQuestion}>
               <h3 className={styles['question-text']}>
-                {questions[currentQuestion].text}
+                {questions?.[currentQuestion]?.text || 'Loading question...'}
               </h3>
 
               <div className={styles['options-container']}>
-                {questions[currentQuestion].options.map((option, index) => (
+                {(questions?.[currentQuestion]?.options || []).map((option, index) => (
                   <button
                     key={index}
                     className={`${styles['option-button']} ${
@@ -213,3 +213,11 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey 
 };
 
 export default SurveySection;
+function onBack() {
+  throw new Error('Function not implemented.');
+}
+
+function onComplete(_arg0: any) {
+  throw new Error('Function not implemented.');
+}
+

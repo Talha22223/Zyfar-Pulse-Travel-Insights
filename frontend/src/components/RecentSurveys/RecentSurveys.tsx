@@ -59,7 +59,7 @@ const RecentSurveys: React.FC = () => {
 
   const getCityColor = (index: number) => {
     const colors = ['#40E0D0', '#FF6B9D', '#FFD93D', '#A78BFA', '#34D399', '#F97316'];
-    return colors[index % colors.length];
+    return colors[index % (colors?.length ?? 1)];
   };
 
   if (loading) {
@@ -75,7 +75,7 @@ const RecentSurveys: React.FC = () => {
     );
   }
 
-  if (surveys.length === 0) {
+  if (!surveys || surveys.length === 0) {
     return null;
   }
 
@@ -128,7 +128,7 @@ const RecentSurveys: React.FC = () => {
                     </span>
                   </div>
                   
-                  {survey.answers && survey.answers[0] && (
+                  {survey?.answers?.[0] && (
                     <div className={styles['answer-preview']}>
                       <div className={styles['answer-label']}>Response:</div>
                       <div className={styles['answer-text']}>"{survey.answers[0]}"</div>
