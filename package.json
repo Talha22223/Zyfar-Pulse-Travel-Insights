@@ -30,5 +30,8 @@
   "workspaces": [
     "backend",
     "frontend"
-  ]
+  ],
+  "devDependencies": {
+    "terser": "^5.44.1"
+  }
 }
