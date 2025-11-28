@@ -16,12 +16,13 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
   const [city, setCity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
-  const [, setLoading] = useState(true);
+  const [categoryWithQuestions, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const questionContainerRef = useRef<HTMLDivElement>(null);
 
-  const questions = category.questions || [];
+  // Use loaded questions if available, otherwise fall back to category.questions
+  const questions = categoryWithQuestions?.questions || category.questions || [];
   const isLastQuestion = currentQuestion === questions.length - 1;
   const isCityInput = currentQuestion === questions.length;
 
@@ -29,7 +30,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         const response = await api.getCategoryQuestions(category.id);
         if (response.success && response.category) {
           setCategoryWithQuestions(response.category);
@@ -37,7 +38,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
       } catch (error) {
         console.error('Failed to load questions:', error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
@@ -141,7 +142,13 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
             ))}
           </div>
 
-          {!isCityInput ? (
+          {isLoading && (
+            <div className={styles['question-container']}>
+              <p>Loading questions...</p>
+            </div>
+          )}
+
+          {!isCityInput && !isLoading ? (
             <div className={`${styles['question-container']} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`} key={currentQuestion}>
               <h3 className={styles['question-text']}>
                 {questions?.[currentQuestion]?.text || 'Loading question...'}
