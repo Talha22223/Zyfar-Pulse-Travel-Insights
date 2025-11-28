@@ -18,6 +18,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [categoryWithQuestions, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const questionContainerRef = useRef<HTMLDivElement>(null);
 
@@ -32,15 +33,22 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     const loadQuestions = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log('Loading questions for category:', category.id);
         const response = await api.getCategoryQuestions(category.id);
-        console.log('Questions response:', response);
+        console.log('Full API response:', JSON.stringify(response, null, 2));
+        
         if (response.success && response.category) {
+          console.log('Setting category with questions:', response.category);
+          console.log('Questions array:', response.category.questions);
           setCategoryWithQuestions(response.category);
-          console.log('Questions loaded:', response.category.questions?.length);
+        } else {
+          console.error('Invalid response structure:', response);
+          setError('Failed to load questions - invalid response');
         }
-      } catch (error) {
-        console.error('Failed to load questions:', error);
+      } catch (err) {
+        console.error('Failed to load questions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load questions');
       } finally {
         setIsLoading(false);
       }
@@ -154,7 +162,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
 
           {!isLoading && !hasQuestions && (
             <div className={styles['question-container']}>
-              <p>No questions available for this category.</p>
+              <p>{error || 'No questions available for this category.'}</p>
               <button className={styles['nav-button']} onClick={onBack}>
                 Go Back
               </button>

@@ -1,13 +1,18 @@
 // API configuration for Zyfar Pulse
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+console.log('API_BASE_URL:', API_BASE_URL);
+
 // Helper function for error handling
 const handleResponse = async (response: Response) => {
+  const data = await response.json().catch(() => ({ error: 'Network error' }));
+  
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Network error' }));
-    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    console.error('API Error:', response.status, data);
+    throw new Error(data.error || `Backend error: ${response.status}`);
   }
-  return response.json();
+  
+  return data;
 };
 
 export const api = {
