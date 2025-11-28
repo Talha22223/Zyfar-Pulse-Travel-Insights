@@ -11,6 +11,7 @@ export interface SurveyCategory {
   emoji: string;
   tagline: string;
   questions: SurveyQuestion[];
+  questionCount?: number;
 }
 
 export interface SurveySubmission {

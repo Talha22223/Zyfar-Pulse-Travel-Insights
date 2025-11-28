@@ -5,10 +5,11 @@ import styles from './SurveySection.module.scss';
 
 interface SurveySectionProps {
   category: SurveyCategory;
-  onSubmitSurvey: (data: any) => Promise<void>;
+  onComplete: (insight: string) => void;
+  onBack: () => void;
 }
 
-const SurveySection: React.FC<SurveySectionProps> = ({ category }) => {
+const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onBack }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -213,11 +214,4 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category }) => {
 };
 
 export default SurveySection;
-function onBack() {
-  throw new Error('Function not implemented.');
-}
-
-function onComplete(_arg0: any) {
-  throw new Error('Function not implemented.');
-}
 
