@@ -59,7 +59,7 @@ export const api = {
   // Get survey categories
   getCategories: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/sample-questions`);
+      const response = await fetch('/api/categories');
       return handleResponse(response);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -81,7 +81,7 @@ export const api = {
   // Get recent surveys
   getRecentSurveys: async (limit: number = 10) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/recent?limit=${limit}`);
+      const response = await fetch(`/api/recent?limit=${limit}`);
       return handleResponse(response);
     } catch (error) {
       console.error('Error fetching recent surveys:', error);
