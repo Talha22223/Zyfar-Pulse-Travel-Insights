@@ -10,7 +10,7 @@ module.exports = {
       NODE_ENV: 'production',
       PORT: 4000,
       DATA_DIR: '/var/zyfar_pulse/data',
-      CORS_ORIGIN: 'https://your-vercel-app.vercel.app'
+      CORS_ORIGIN: 'https://zyfar-pulse-travel-insights-fronten.vercel.app'
     },
     error_file: '/var/log/zyfar-pulse-error.log',
     out_file: '/var/log/zyfar-pulse-out.log',
