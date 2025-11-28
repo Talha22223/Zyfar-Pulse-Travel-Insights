@@ -1,5 +1,5 @@
 // API configuration for Zyfar Pulse
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function for error handling
 const handleResponse = async (response: Response) => {
