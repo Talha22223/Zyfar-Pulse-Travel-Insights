@@ -93,13 +93,13 @@ const RecentSurveys: React.FC = () => {
             </p>
           </div>
           <div className={styles['stats-badge']}>
-            <span className={styles['count']}>{surveys.length}</span>
+            <span className={styles['count']}>{surveys?.length || 0}</span>
             <span className={styles['label']}>Responses</span>
           </div>
         </div>
 
         <div className={styles['surveys-grid']}>
-          {surveys.slice(0, visibleCount).map((survey, index) => {
+          {(surveys || []).slice(0, visibleCount).map((survey, index) => {
             const categoryInfo = getCategoryInfo(survey.category);
             return (
               <div 
@@ -147,7 +147,7 @@ const RecentSurveys: React.FC = () => {
           })}
         </div>
 
-        {visibleCount < surveys.length && (
+        {visibleCount < (surveys?.length || 0) && (
           <div className={styles['load-more-container']}>
             <button 
               className={styles['load-more-btn']}

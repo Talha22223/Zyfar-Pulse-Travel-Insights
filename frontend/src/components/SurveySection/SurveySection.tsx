@@ -5,23 +5,43 @@ import styles from './SurveySection.module.scss';
 
 interface SurveySectionProps {
   category: SurveyCategory;
-  onComplete: (insight: string) => void;
-  onBack: () => void;
+  onSubmitSurvey: (data: any) => Promise<void>;
 }
 
-const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onBack }) => {
+const SurveySection: React.FC<SurveySectionProps> = ({ category, onSubmitSurvey }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [city, setCity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [categoryWithQuestions, setCategoryWithQuestions] = useState<SurveyCategory | null>(null);
+  const [loading, setLoading] = useState(true);
   
   const questionContainerRef = useRef<HTMLDivElement>(null);
 
-  const questions = category.questions;
+  const questions = category.questions || [];
   const isLastQuestion = currentQuestion === questions.length - 1;
   const isCityInput = currentQuestion === questions.length;
+
+  // Load questions when category changes
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        setLoading(true);
+        const response = await api.getCategoryQuestions(category.id);
+        if (response.success && response.category) {
+          setCategoryWithQuestions(response.category);
+        }
+      } catch (error) {
+        console.error('Failed to load questions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadQuestions();
+  }, [category.id]);
 
   // Auto-scroll to question when it changes
   useEffect(() => {
