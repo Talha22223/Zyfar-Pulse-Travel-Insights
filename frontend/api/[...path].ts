@@ -28,58 +28,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const queryString = req.url?.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
     const backendUrl = `${BACKEND_URL}/api/${fullPath}${queryString}`;
     
-    console.log('🔄 Proxying:', req.method, req.url, '→', backendUrl);
-    
-    // Test backend connectivity first
-    const healthCheck = await fetch(`${BACKEND_URL}/health`, { 
-      method: 'GET'
-    });
-    
-    if (!healthCheck.ok) {
-      throw new Error(`Backend not healthy: ${healthCheck.status}`);
-    }
-    
-    console.log('✅ Backend is healthy, making actual request...');
-    
     // Make the actual request to backend
     const response = await fetch(backendUrl, {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'Vercel-Proxy/1.0'
+        'Accept': 'application/json'
       },
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
-
+      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined
     });
-
-    console.log('📥 Backend response:', response.status, response.statusText);
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Backend error response:', errorText);
-      return res.status(response.status).json({
+      return res.status(500).json({
         success: false,
-        error: `Backend error: ${response.status} ${response.statusText}`,
-        details: errorText
+        error: `Backend error: ${response.status}`
       });
     }
 
     const data = await response.json();
-    console.log('✅ Successfully proxied request');
-    
     return res.status(200).json(data);
     
   } catch (error) {
-    console.error('🚨 Proxy error:', error);
-    
-    // Return detailed error information
     return res.status(500).json({ 
       success: false,
-      error: 'Proxy failed',
-      details: error.message,
-      backend_url: BACKEND_URL,
-      timestamp: new Date().toISOString()
+      error: 'Connection failed',
+      details: String(error)
     });
   }
 }

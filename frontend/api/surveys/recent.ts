@@ -14,38 +14,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const limit = req.query.limit || '20';
-    console.log(`🔄 Fetching recent surveys (limit: ${limit})...`);
     
     const response = await fetch(`${BACKEND_URL}/api/surveys/recent?limit=${limit}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Vercel-RecentSurveys/1.0'
-      },
-
+        'Accept': 'application/json'
+      }
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Backend error:', response.status, errorText);
-      return res.status(response.status).json({
+      return res.status(500).json({
         success: false,
-        error: `Backend returned ${response.status}`,
-        details: errorText
+        error: `Backend error: ${response.status}`
       });
     }
 
     const data = await response.json();
-    console.log('✅ Recent surveys fetched successfully');
-    
     return res.status(200).json(data);
     
   } catch (error) {
-    console.error('🚨 Error fetching recent surveys:', error);
     return res.status(500).json({
       success: false,
-      error: 'Failed to fetch recent surveys',
-      details: error.message
+      error: 'Connection failed',
+      details: String(error)
     });
   }
 }
