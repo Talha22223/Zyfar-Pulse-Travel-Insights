@@ -31,15 +31,14 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ onSelectCategory })
   const loadCategories = async () => {
     try {
       const response = await api.getCategories();
+      console.log('Categories API response:', response);
+      
       if (response.success && response.categories) {
-        // Fetch full details for each category
-        const categoriesWithQuestions = await Promise.all(
-          response.categories.map(async (cat: any) => {
-            const details = await api.getCategoryQuestions(cat.id);
-            return details.category;
-          })
-        );
-        setCategories(categoriesWithQuestions);
+        // Use categories directly from the response - they already have all needed properties
+        setCategories(response.categories);
+        console.log('Categories loaded successfully:', response.categories.length);
+      } else {
+        console.error('Invalid response structure:', response);
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
