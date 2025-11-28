@@ -148,7 +148,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
             </div>
           )}
 
-          {!isCityInput && !isLoading ? (
+          {!isLoading && !isCityInput && (
             <div className={`${styles['question-container']} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`} key={currentQuestion}>
               <h3 className={styles['question-text']}>
                 {questions?.[currentQuestion]?.text || 'Loading question...'}
@@ -183,7 +183,9 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
                 </button>
               </div>
             </div>
-          ) : (
+          )}
+
+          {!isLoading && isCityInput && (
             <div className={`${styles['city-input-container']} ${styles.fadeIn}`}>
               <h3 className={styles['question-text']}>
                 Which city are you from?
@@ -221,4 +223,3 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
 };
 
 export default SurveySection;
-
