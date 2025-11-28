@@ -25,7 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     
     // Build the complete backend URL
-    const queryString = req.url?.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+    // Remove the path params from query string since they're already in fullPath
+    const urlObj = new URL(req.url || '', `https://${req.headers.host}`);
+    urlObj.searchParams.delete('path');
+    const queryString = urlObj.search;
     const backendUrl = `${BACKEND_URL}/api/${fullPath}${queryString}`;
     
     console.log(`Proxying request to: ${backendUrl}`);
