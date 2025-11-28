@@ -23,17 +23,21 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
 
   // Use loaded questions if available, otherwise fall back to category.questions
   const questions = categoryWithQuestions?.questions || category.questions || [];
-  const isLastQuestion = currentQuestion === questions.length - 1;
-  const isCityInput = currentQuestion === questions.length;
+  const hasQuestions = questions.length > 0;
+  const isLastQuestion = hasQuestions && currentQuestion === questions.length - 1;
+  const isCityInput = hasQuestions && currentQuestion === questions.length;
 
   // Load questions when category changes
   useEffect(() => {
     const loadQuestions = async () => {
       try {
         setIsLoading(true);
+        console.log('Loading questions for category:', category.id);
         const response = await api.getCategoryQuestions(category.id);
+        console.log('Questions response:', response);
         if (response.success && response.category) {
           setCategoryWithQuestions(response.category);
+          console.log('Questions loaded:', response.category.questions?.length);
         }
       } catch (error) {
         console.error('Failed to load questions:', error);
@@ -148,7 +152,16 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
             </div>
           )}
 
-          {!isLoading && !isCityInput && (
+          {!isLoading && !hasQuestions && (
+            <div className={styles['question-container']}>
+              <p>No questions available for this category.</p>
+              <button className={styles['nav-button']} onClick={onBack}>
+                Go Back
+              </button>
+            </div>
+          )}
+
+          {!isLoading && hasQuestions && !isCityInput && (
             <div className={`${styles['question-container']} ${isTransitioning ? styles.fadeOut : styles.fadeIn}`} key={currentQuestion}>
               <h3 className={styles['question-text']}>
                 {questions?.[currentQuestion]?.text || 'Loading question...'}
@@ -185,7 +198,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
             </div>
           )}
 
-          {!isLoading && isCityInput && (
+          {!isLoading && hasQuestions && isCityInput && (
             <div className={`${styles['city-input-container']} ${styles.fadeIn}`}>
               <h3 className={styles['question-text']}>
                 Which city are you from?
