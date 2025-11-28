@@ -1,8 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const BACKEND_URL = 'http://31.97.203.109:4000';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -14,14 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const limit = req.query.limit || '20';
+    const response = await fetch(`${BACKEND_URL}/api/surveys/recent?limit=${limit}`);
     
-    const response = await fetch(`${BACKEND_URL}/api/surveys/recent?limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
     if (!response.ok) {
       return res.status(500).json({
         success: false,
@@ -35,8 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      error: 'Connection failed',
-      details: String(error)
+      error: 'Connection failed'
     });
   }
 }
