@@ -118,21 +118,45 @@ const RecentSurveys: React.FC = () => {
                 </div>
 
                 <div className={styles['card-body']}>
-                  <div className={styles['city-info']}>
-                    <span className={styles['city-icon']}>📍</span>
-                    <span 
-                      className={styles['city-name']}
-                      style={{ color: getCityColor(index) }}
-                    >
-                      {survey.city}
-                    </span>
-                  </div>
-                  
-                  {survey?.answers?.[0] && (
-                    <div className={styles['answer-preview']}>
-                      <div className={styles['answer-label']}>Response:</div>
-                      <div className={styles['answer-text']}>"{survey.answers[0]}"</div>
-                    </div>
+                  {/* For travel_intention, show destination prominently */}
+                  {survey.category === 'travel_intention' && survey?.answers?.[1] ? (
+                    <>
+                      <div className={styles['city-info']}>
+                        <span className={styles['city-icon']}>✈️</span>
+                        <span 
+                          className={styles['city-name']}
+                          style={{ color: getCityColor(index) }}
+                        >
+                          {survey.answers[1]}
+                        </span>
+                      </div>
+                      
+                      <div className={styles['answer-preview']}>
+                        <div className={styles['answer-label']}>Response:</div>
+                        <div className={styles['answer-text']}>
+                          "{survey.answers[0]}" {survey.city && <span className={styles['from-city']}>from {survey.city}</span>}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles['city-info']}>
+                        <span className={styles['city-icon']}>📍</span>
+                        <span 
+                          className={styles['city-name']}
+                          style={{ color: getCityColor(index) }}
+                        >
+                          {survey.city || 'Anonymous'}
+                        </span>
+                      </div>
+                      
+                      {survey?.answers?.[0] && (
+                        <div className={styles['answer-preview']}>
+                          <div className={styles['answer-label']}>Response:</div>
+                          <div className={styles['answer-text']}>"{survey.answers[0]}"</div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
