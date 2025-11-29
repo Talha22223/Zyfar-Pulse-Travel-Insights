@@ -91,7 +91,8 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
   const needsTextInput = (option: string) => {
     return option === 'Specific area (text option)' || 
            option === 'Landmark (text option)' || 
-           option === 'Others (specify)';
+           option === 'Others (specify)' ||
+           option === 'Other (specify)';
   };
 
   const handleSelectOption = (option: string) => {
@@ -139,9 +140,9 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
           answerToSave = [...selectedOptions];
         }
       } else if (questionType === 'single' && needsTextInput(selectedOption)) {
-        // Handle location with text input or Others
-        if (selectedOption === 'Others (specify)') {
-          answerToSave = locationText.trim() ? `Others: ${locationText.trim()}` : 'Others';
+        // Handle location with text input or Others/Other
+        if (selectedOption === 'Others (specify)' || selectedOption === 'Other (specify)') {
+          answerToSave = locationText.trim() ? `Other: ${locationText.trim()}` : 'Other';
         } else {
           answerToSave = locationText.trim() ? `${selectedOption.replace(' (text option)', '')}: ${locationText.trim()}` : selectedOption;
         }
@@ -261,6 +262,9 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     }
     if (selectedOption === 'Others (specify)' || selectedOptions.includes('Others (specify)')) {
       return 'Please specify...';
+    }
+    if (selectedOption === 'Other (specify)') {
+      return 'Enter your destination...';
     }
     return 'Enter details...';
   };

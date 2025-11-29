@@ -18,7 +18,7 @@ export const SURVEY_CATEGORIES = {
         id: 'ti_q2',
         text: 'Which destination are you most interested in?',
         type: 'single',
-        options: ['Manali', 'Goa', 'Kerala', 'Rajasthan', 'Northeast', 'International']
+        options: ['Manali', 'Goa', 'Kerala', 'Rajasthan', 'Northeast', 'International', 'Other (specify)']
       },
       {
         id: 'ti_q3',
