@@ -48,10 +48,13 @@ export interface CityOverview {
     name: string;
     count: number;
   }[];
-  safetyIndex: number;
-  budgetAverage: string;
-  happinessScore: number;
-  painPointIndex: string;
+  safetyIndex: number | null;
+  budgetAverage: string | null;
+  happinessScore: number | null;
+  painPointIndex: string | null;
+  categoryBreakdown?: { [key: string]: number };
+  topAnswers?: { answer: string; count: number }[];
+  hasData?: boolean;
 }
 
 export interface ApiResponse<T> {

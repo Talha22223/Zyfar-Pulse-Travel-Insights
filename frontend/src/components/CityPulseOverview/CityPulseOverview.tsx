@@ -171,17 +171,23 @@ const CityPulseOverview: React.FC<CityPulseOverviewProps> = ({ userCity: propCit
 
           <div className={styles['stat-card']}>
             <div className={styles['stat-label']}>Safety Index</div>
-            <div className={styles['stat-value']}>{overview.safetyIndex}/100</div>
+            <div className={styles['stat-value']}>
+              {overview.safetyIndex !== null ? `${overview.safetyIndex}/100` : <span className={styles['no-data']}>No data yet</span>}
+            </div>
           </div>
 
           <div className={styles['stat-card']}>
             <div className={styles['stat-label']}>Budget Average</div>
-            <div className={`${styles['stat-value']} ${styles.text}`}>{overview.budgetAverage}</div>
+            <div className={`${styles['stat-value']} ${styles.text}`}>
+              {overview.budgetAverage !== null ? overview.budgetAverage : <span className={styles['no-data']}>No data yet</span>}
+            </div>
           </div>
 
           <div className={styles['stat-card']}>
             <div className={styles['stat-label']}>Happiness Score</div>
-            <div className={styles['stat-value']}>{overview.happinessScore}/100</div>
+            <div className={styles['stat-value']}>
+              {overview.happinessScore !== null ? `${overview.happinessScore}/100` : <span className={styles['no-data']}>No data yet</span>}
+            </div>
           </div>
         </div>
 
@@ -199,7 +205,22 @@ const CityPulseOverview: React.FC<CityPulseOverviewProps> = ({ userCity: propCit
           </div>
         )}
 
-        {overview.painPointIndex !== 'N/A' && overview.painPointIndex !== 'No major issues' && (
+        {/* Top Answers Section - Dynamic */}
+        {(overview?.topAnswers?.length ?? 0) > 0 && (
+          <div className={styles['destinations-section']} style={{ marginTop: '2rem' }}>
+            <h3 className={styles['destinations-title']}>Top Responses</h3>
+            <div className={styles['destinations-grid']}>
+              {(overview?.topAnswers || []).slice(0, 6).map((item, index) => (
+                <div key={index} className={styles['destination-card']}>
+                  <div className={styles['destination-card-name']}>{item.answer}</div>
+                  <div className={styles['destination-card-count']}>{item.count} responses</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {overview.painPointIndex && overview.painPointIndex !== 'N/A' && overview.painPointIndex !== 'No major issues' && (
           <div className={styles['stat-card']} style={{ marginTop: '2rem' }}>
             <div className={styles['stat-label']}>Top Pain Point</div>
             <div className={`${styles['stat-value']} ${styles.text}`}>{overview.painPointIndex}</div>

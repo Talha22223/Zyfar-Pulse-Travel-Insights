@@ -63,7 +63,7 @@ export const calculateLiveStats = (category) => {
   };
 };
 
-// Calculate city-level overview statistics
+// Calculate city-level overview statistics - FULLY DYNAMIC
 export const calculateCityOverview = (city) => {
   const citySurveys = city 
     ? dataStore.getSurveysByCity(city)
@@ -74,27 +74,40 @@ export const calculateCityOverview = (city) => {
       city: city || 'All India',
       totalResponses: 0,
       trendingDestinations: [],
-      safetyIndex: 0,
-      budgetAverage: 'N/A',
-      happinessScore: 0,
-      painPointIndex: 'N/A'
+      safetyIndex: null,
+      budgetAverage: null,
+      happinessScore: null,
+      painPointIndex: null,
+      categoryBreakdown: {},
+      topAnswers: [],
+      hasData: false
     };
   }
 
-  // Calculate trending destinations
+  // Calculate category breakdown dynamically
+  const categoryBreakdown = {};
+  citySurveys.forEach(survey => {
+    const cat = survey.category || 'unknown';
+    categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
+  });
+
+  // Calculate trending destinations (from any survey that mentions destinations)
   const trendingDestinations = extractTopDestinations(citySurveys).slice(0, 5);
 
-  // Calculate safety index (from safety category)
+  // Calculate safety index (from safety category) - returns null if no data
   const safetyIndex = calculateSafetyIndex(citySurveys);
 
-  // Calculate budget average (from price sensitivity category)
+  // Calculate budget average (from price sensitivity category) - returns null if no data
   const budgetAverage = calculateBudgetAverage(citySurveys);
 
-  // Calculate happiness score (from post trip feedback)
+  // Calculate happiness score (from post trip feedback + destination experience)
   const happinessScore = calculateHappinessScore(citySurveys);
 
-  // Calculate pain point index (from local problems)
+  // Calculate pain point index (from local problems / city intelligence)
   const painPointIndex = calculatePainPointIndex(citySurveys);
+
+  // Get top answers across all surveys
+  const topAnswers = extractTopAnswers(citySurveys);
 
   return {
     city: city || 'All India',
@@ -103,8 +116,32 @@ export const calculateCityOverview = (city) => {
     safetyIndex,
     budgetAverage,
     happinessScore,
-    painPointIndex
+    painPointIndex,
+    categoryBreakdown,
+    topAnswers,
+    hasData: true
   };
+};
+
+// Helper: Extract top answers from all surveys dynamically
+const extractTopAnswers = (surveys) => {
+  const allAnswers = {};
+  
+  surveys.forEach(survey => {
+    if (survey.answers && Array.isArray(survey.answers)) {
+      survey.answers.forEach(answer => {
+        if (answer && typeof answer === 'string' && answer.length < 100) {
+          // Skip very long text answers
+          allAnswers[answer] = (allAnswers[answer] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  return Object.entries(allAnswers)
+    .map(([answer, count]) => ({ answer, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 };
 
 // Helper: Extract top destinations from surveys
@@ -147,11 +184,11 @@ const generateTrends = (surveys) => {
     .sort((a, b) => a.date.localeCompare(b.date));
 };
 
-// Helper: Calculate safety index (0-100)
+// Helper: Calculate safety index (0-100) - returns null if no data
 const calculateSafetyIndex = (surveys) => {
   const safetySurveys = surveys.filter(s => s.category === 'safety');
   
-  if (safetySurveys.length === 0) return 0;
+  if (safetySurveys.length === 0) return null;
 
   const safetyScores = {
     'Very safe': 100,
@@ -160,7 +197,10 @@ const calculateSafetyIndex = (surveys) => {
     'Very unsafe': 10,
     'No concerns': 100,
     'Minor concerns': 60,
-    'Major concerns': 20
+    'Major concerns': 20,
+    'Yes, absolutely': 100,
+    'Yes, somewhat': 70,
+    'Not really': 40
   };
 
   let totalScore = 0;
@@ -177,14 +217,14 @@ const calculateSafetyIndex = (surveys) => {
     }
   });
 
-  return count > 0 ? Math.round(totalScore / count) : 0;
+  return count > 0 ? Math.round(totalScore / count) : null;
 };
 
-// Helper: Calculate budget average
+// Helper: Calculate budget average - returns null if no data
 const calculateBudgetAverage = (surveys) => {
   const budgetSurveys = surveys.filter(s => s.category === 'price_sensitivity');
   
-  if (budgetSurveys.length === 0) return 'N/A';
+  if (budgetSurveys.length === 0) return null;
 
   const budgetRanges = {
     'Under ₹10,000': 7500,
@@ -206,17 +246,21 @@ const calculateBudgetAverage = (surveys) => {
     }
   });
 
-  if (count === 0) return 'N/A';
+  if (count === 0) return null;
 
   const average = Math.round(totalBudget / count);
   return `₹${average.toLocaleString('en-IN')}`;
 };
 
-// Helper: Calculate happiness score (0-100)
+// Helper: Calculate happiness score (0-100) - returns null if no data
 const calculateHappinessScore = (surveys) => {
-  const feedbackSurveys = surveys.filter(s => s.category === 'post_trip_feedback');
+  // Check multiple categories that indicate happiness/satisfaction
+  const feedbackSurveys = surveys.filter(s => 
+    s.category === 'post_trip_feedback' || 
+    s.category === 'destination_experience'
+  );
   
-  if (feedbackSurveys.length === 0) return 0;
+  if (feedbackSurveys.length === 0) return null;
 
   const happinessScores = {
     'Extremely satisfied': 100,
@@ -226,7 +270,21 @@ const calculateHappinessScore = (surveys) => {
     'Excellent': 100,
     'Good': 75,
     'Average': 50,
-    'Poor': 25
+    'Poor': 25,
+    'Exceeded expectations': 100,
+    'Met expectations': 75,
+    'Fell short': 40,
+    'Very disappointing': 20,
+    'Absolutely yes': 100,
+    'Yes, with some tips': 80,
+    'Not really': 40,
+    'Definitely not': 20,
+    'Yes, definitely': 100,
+    'Maybe': 50,
+    'No': 25,
+    'Very welcoming': 100,
+    'Friendly': 80,
+    'Unwelcoming': 30
   };
 
   let totalScore = 0;
@@ -243,7 +301,7 @@ const calculateHappinessScore = (surveys) => {
     }
   });
 
-  return count > 0 ? Math.round(totalScore / count) : 0;
+  return count > 0 ? Math.round(totalScore / count) : null;
 };
 
 // Helper: Calculate pain point index
