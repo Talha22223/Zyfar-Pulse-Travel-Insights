@@ -87,6 +87,13 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     });
   };
 
+  // Check if option needs additional text input
+  const needsTextInput = (option: string) => {
+    return option === 'Specific area (text option)' || 
+           option === 'Landmark (text option)' || 
+           option === 'Others (specify)';
+  };
+
   const handleSelectOption = (option: string) => {
     const questionType = getCurrentQuestionType();
     
@@ -94,10 +101,14 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
       handleToggleOption(option);
     } else {
       setSelectedOption(option);
-      // Auto-advance after selection with smooth transition for single/rating
-      setTimeout(() => {
-        handleNext();
-      }, 600);
+      
+      // Don't auto-advance if option needs text input
+      if (!needsTextInput(option)) {
+        // Auto-advance after selection with smooth transition for single/rating
+        setTimeout(() => {
+          handleNext();
+        }, 600);
+      }
     }
   };
 
@@ -119,10 +130,21 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
       if (questionType === 'text') {
         answerToSave = textInput.trim();
       } else if (questionType === 'multiple') {
-        answerToSave = [...selectedOptions];
-      } else if (questionType === 'single' && (selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)')) {
-        // Handle location with text input
-        answerToSave = locationText.trim() ? `${selectedOption}: ${locationText.trim()}` : selectedOption;
+        // Check if "Others (specify)" is selected and has additional text
+        const othersSelected = selectedOptions.includes('Others (specify)');
+        if (othersSelected && locationText.trim()) {
+          const filteredOptions = selectedOptions.filter(o => o !== 'Others (specify)');
+          answerToSave = [...filteredOptions, `Others: ${locationText.trim()}`];
+        } else {
+          answerToSave = [...selectedOptions];
+        }
+      } else if (questionType === 'single' && needsTextInput(selectedOption)) {
+        // Handle location with text input or Others
+        if (selectedOption === 'Others (specify)') {
+          answerToSave = locationText.trim() ? `Others: ${locationText.trim()}` : 'Others';
+        } else {
+          answerToSave = locationText.trim() ? `${selectedOption.replace(' (text option)', '')}: ${locationText.trim()}` : selectedOption;
+        }
       } else {
         answerToSave = selectedOption;
       }
@@ -204,16 +226,43 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
   const hasValidInput = () => {
     const questionType = getCurrentQuestionType();
     if (questionType === 'text') return textInput.trim().length > 0;
-    if (questionType === 'multiple') return selectedOptions.length > 0;
-    if (questionType === 'single' && (selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)')) {
+    if (questionType === 'multiple') {
+      // If "Others (specify)" is selected, require text input
+      if (selectedOptions.includes('Others (specify)')) {
+        return selectedOptions.length > 0 && locationText.trim().length > 0;
+      }
+      return selectedOptions.length > 0;
+    }
+    if (questionType === 'single' && needsTextInput(selectedOption)) {
       return selectedOption && locationText.trim().length > 0;
     }
     return !!selectedOption;
   };
 
-  // Check if location text input is needed
-  const needsLocationText = () => {
-    return selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)';
+  // Check if location/other text input is needed for current selection
+  const showAdditionalTextInput = () => {
+    const questionType = getCurrentQuestionType();
+    if (questionType === 'single') {
+      return needsTextInput(selectedOption);
+    }
+    if (questionType === 'multiple') {
+      return selectedOptions.includes('Others (specify)');
+    }
+    return false;
+  };
+
+  // Get placeholder text for additional input
+  const getAdditionalInputPlaceholder = () => {
+    if (selectedOption === 'Specific area (text option)' || selectedOptions.includes('Specific area (text option)')) {
+      return 'Enter specific area name...';
+    }
+    if (selectedOption === 'Landmark (text option)' || selectedOptions.includes('Landmark (text option)')) {
+      return 'Enter landmark name...';
+    }
+    if (selectedOption === 'Others (specify)' || selectedOptions.includes('Others (specify)')) {
+      return 'Please specify...';
+    }
+    return 'Enter details...';
   };
 
   return (
@@ -310,14 +359,19 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
                     </button>
                   ))}
                   
-                  {/* Additional text input for location options */}
-                  {needsLocationText() && (
+                  {/* Additional text input for location/others options */}
+                  {showAdditionalTextInput() && (
                     <input
                       type="text"
                       className={styles['location-input']}
-                      placeholder={selectedOption === 'Specific area (text option)' ? 'Enter specific area name...' : 'Enter landmark name...'}
+                      placeholder={getAdditionalInputPlaceholder()}
                       value={locationText}
                       onChange={(e) => setLocationText(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && hasValidInput()) {
+                          handleNext();
+                        }
+                      }}
                       autoFocus
                     />
                   )}
@@ -342,6 +396,18 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
                       {option}
                     </button>
                   ))}
+                  
+                  {/* Additional text input for "Others (specify)" in multiple selection */}
+                  {showAdditionalTextInput() && (
+                    <input
+                      type="text"
+                      className={styles['location-input']}
+                      placeholder={getAdditionalInputPlaceholder()}
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value)}
+                      autoFocus
+                    />
+                  )}
                 </div>
               )}
 
