@@ -20,7 +20,15 @@ function App() {
   const insightsRef = useRef<HTMLDivElement>(null);
 
   const handleStartSurvey = () => {
-    categorySelectorRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Reset state to show categories again
+    setSelectedCategory(null);
+    setShowResults(false);
+    setSurveyInsight('');
+    
+    // Scroll to category selector after state reset
+    setTimeout(() => {
+      categorySelectorRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSelectCategory = (category: SurveyCategory) => {
