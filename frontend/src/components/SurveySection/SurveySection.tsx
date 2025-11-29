@@ -5,7 +5,7 @@ import styles from './SurveySection.module.scss';
 
 interface SurveySectionProps {
   category: SurveyCategory;
-  onComplete: (insight: string) => void;
+  onComplete: (insight: string, city?: string) => void;
   onBack: () => void;
 }
 
@@ -210,7 +210,7 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
       });
 
       if (response.success) {
-        onComplete(response.insight || 'Thanks! Your pulse is added.');
+        onComplete(response.insight || 'Thanks! Your pulse is added.', city.trim());
       } else {
         alert('Failed to submit survey. Please try again.');
       }

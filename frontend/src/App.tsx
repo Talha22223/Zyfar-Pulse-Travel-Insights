@@ -15,6 +15,7 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState<SurveyCategory | null>(null);
   const [surveyInsight, setSurveyInsight] = useState<string>('');
   const [showResults, setShowResults] = useState(false);
+  const [lastSubmittedCity, setLastSubmittedCity] = useState<string>('');
 
   const categorySelectorRef = useRef<HTMLDivElement>(null);
   const insightsRef = useRef<HTMLDivElement>(null);
@@ -36,10 +37,16 @@ function App() {
     setShowResults(false);
   };
 
-  const handleSurveyComplete = (insight: string) => {
+  const handleSurveyComplete = (insight: string, city?: string) => {
     setSurveyInsight(insight);
     setShowResults(true);
     setSelectedCategory(null);
+    
+    // Save city to state and localStorage
+    if (city) {
+      setLastSubmittedCity(city);
+      localStorage.setItem('zyfar_user_city', city);
+    }
     
     setTimeout(() => {
       insightsRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,7 +81,7 @@ function App() {
           <div ref={insightsRef}>
             <LiveInsights insight={surveyInsight} />
           </div>
-          <CityPulseOverview />
+          <CityPulseOverview userCity={lastSubmittedCity} />
           <RecentSurveys />
         </>
       )}

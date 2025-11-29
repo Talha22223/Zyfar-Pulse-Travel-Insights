@@ -138,6 +138,92 @@
   color: var(--text-secondary);
 }
 
+/* City Input Prompt */
+.city-input-prompt {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 30px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.prompt-text {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.city-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 14px 20px;
+  font-size: 1rem;
+  border: 2px solid #E8ECF0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.city-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(64, 224, 208, 0.15);
+}
+
+.city-input::placeholder {
+  color: #A0AEC0;
+}
+
+.set-city-btn {
+  background: linear-gradient(135deg, #40E0D0 0%, #34D399 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.set-city-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(64, 224, 208, 0.3);
+}
+
+.set-city-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* No Data Message */
+.no-data-message {
+  background: linear-gradient(135deg, rgba(64, 224, 208, 0.1) 0%, rgba(255, 107, 157, 0.1) 100%);
+  border-radius: var(--border-radius);
+  padding: 40px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.no-data-message p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .section-title {
     font-size: 1.8rem;
