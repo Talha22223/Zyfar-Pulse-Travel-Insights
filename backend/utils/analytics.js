@@ -185,12 +185,18 @@ const generateTrends = (surveys) => {
 };
 
 // Helper: Calculate safety index (0-100) - returns null if no data
+// Checks safety category first, then falls back to any survey with safety-related answers
 const calculateSafetyIndex = (surveys) => {
-  const safetySurveys = surveys.filter(s => s.category === 'safety');
+  // First try safety category
+  let safetySurveys = surveys.filter(s => s.category === 'safety');
   
-  if (safetySurveys.length === 0) return null;
+  // If no safety surveys, check all surveys for safety-related answers
+  if (safetySurveys.length === 0) {
+    safetySurveys = surveys; // Check all surveys
+  }
 
   const safetyScores = {
+    // Safety category answers
     'Very safe': 100,
     'Safe': 75,
     'Somewhat unsafe': 40,
@@ -200,7 +206,13 @@ const calculateSafetyIndex = (surveys) => {
     'Major concerns': 20,
     'Yes, absolutely': 100,
     'Yes, somewhat': 70,
-    'Not really': 40
+    'Not really': 40,
+    // City Intelligence severity scores (invert for safety)
+    '1 – Very low': 95,
+    '2 – Low': 80,
+    '3 – Moderate': 60,
+    '4 – Serious': 35,
+    '5 – Very serious': 15
   };
 
   let totalScore = 0;
@@ -221,48 +233,66 @@ const calculateSafetyIndex = (surveys) => {
 };
 
 // Helper: Calculate budget average - returns null if no data
+// Checks price_sensitivity category first, then falls back to any budget-related answers
 const calculateBudgetAverage = (surveys) => {
-  const budgetSurveys = surveys.filter(s => s.category === 'price_sensitivity');
+  // First try price_sensitivity category
+  let budgetSurveys = surveys.filter(s => s.category === 'price_sensitivity');
   
-  if (budgetSurveys.length === 0) return null;
+  // If no budget surveys, check all surveys
+  if (budgetSurveys.length === 0) {
+    budgetSurveys = surveys;
+  }
 
   const budgetRanges = {
     'Under ₹10,000': 7500,
     '₹10,000 - ₹25,000': 17500,
     '₹25,000 - ₹50,000': 37500,
-    'Above ₹50,000': 75000
+    'Above ₹50,000': 75000,
+    // Additional budget options that might appear in other surveys
+    'Budget (Under ₹15,000)': 10000,
+    'Mid-range (₹15,000 - ₹40,000)': 27500,
+    'Premium (₹40,000+)': 55000,
+    'Less than ₹5,000': 3500,
+    '₹5,000 - ₹15,000': 10000,
+    '₹15,000 - ₹30,000': 22500,
+    '₹30,000+': 45000
   };
 
   let totalBudget = 0;
   let count = 0;
 
   budgetSurveys.forEach(survey => {
-    if (survey.answers && survey.answers[0]) {
-      const budget = budgetRanges[survey.answers[0]];
-      if (budget) {
-        totalBudget += budget;
-        count++;
-      }
+    if (survey.answers) {
+      survey.answers.forEach(answer => {
+        const budget = budgetRanges[answer];
+        if (budget) {
+          totalBudget += budget;
+          count++;
+        }
+      });
     }
   });
 
   if (count === 0) return null;
 
   const average = Math.round(totalBudget / count);
-  return `₹${average.toLocaleString('en-IN')}`;
-};
-
-// Helper: Calculate happiness score (0-100) - returns null if no data
+  return `₹${average.toLocaleString('en-IN')}`; 
+};// Helper: Calculate happiness score (0-100) - returns null if no data
+// Checks feedback categories first, then falls back to any satisfaction-related answers
 const calculateHappinessScore = (surveys) => {
   // Check multiple categories that indicate happiness/satisfaction
-  const feedbackSurveys = surveys.filter(s => 
+  let feedbackSurveys = surveys.filter(s => 
     s.category === 'post_trip_feedback' || 
     s.category === 'destination_experience'
   );
   
-  if (feedbackSurveys.length === 0) return null;
+  // If no specific feedback surveys, check all surveys
+  if (feedbackSurveys.length === 0) {
+    feedbackSurveys = surveys;
+  }
 
   const happinessScores = {
+    // Satisfaction/happiness answers
     'Extremely satisfied': 100,
     'Satisfied': 75,
     'Neutral': 50,
@@ -281,10 +311,23 @@ const calculateHappinessScore = (surveys) => {
     'Definitely not': 20,
     'Yes, definitely': 100,
     'Maybe': 50,
+    'Maybe, still deciding': 50,
     'No': 25,
+    'Not this year': 25,
     'Very welcoming': 100,
     'Friendly': 80,
-    'Unwelcoming': 30
+    'Unwelcoming': 30,
+    // Travel intention positive answers
+    'Relaxation & escape': 85,
+    'Cultural exploration': 80,
+    'Adventure & thrill': 90,
+    'Family bonding': 85,
+    // Trip type happiness
+    'Solo adventure': 80,
+    'Couple getaway': 85,
+    'Family vacation': 80,
+    'Friends trip': 90,
+    'Business + leisure': 65
   };
 
   let totalScore = 0;
