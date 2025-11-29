@@ -11,8 +11,11 @@ interface SurveySectionProps {
 
 const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onBack }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<(string | string[])[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>('');
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [textInput, setTextInput] = useState<string>('');
+  const [locationText, setLocationText] = useState<string>('');
   const [city, setCity] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -67,24 +70,71 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     }
   }, [currentQuestion]);
 
+  // Get current question type
+  const getCurrentQuestionType = () => {
+    if (!questions || questions.length === 0 || currentQuestion >= questions.length) return 'single';
+    return questions[currentQuestion]?.type || 'single';
+  };
+
+  // Handle multiple selection toggle
+  const handleToggleOption = (option: string) => {
+    setSelectedOptions(prev => {
+      if (prev.includes(option)) {
+        return prev.filter(o => o !== option);
+      } else {
+        return [...prev, option];
+      }
+    });
+  };
+
   const handleSelectOption = (option: string) => {
-    setSelectedOption(option);
+    const questionType = getCurrentQuestionType();
     
-    // Auto-advance after selection with smooth transition
-    setTimeout(() => {
-      handleNext();
-    }, 600); // Delay to show selection animation
+    if (questionType === 'multiple') {
+      handleToggleOption(option);
+    } else {
+      setSelectedOption(option);
+      // Auto-advance after selection with smooth transition for single/rating
+      setTimeout(() => {
+        handleNext();
+      }, 600);
+    }
   };
 
   const handleNext = () => {
-    if (!selectedOption || !questions || questions.length === 0) return;
+    const questionType = getCurrentQuestionType();
+    
+    // Validate based on question type
+    if (questionType === 'text' && !textInput.trim()) return;
+    if (questionType === 'multiple' && selectedOptions.length === 0) return;
+    if ((questionType === 'single' || questionType === 'rating') && !selectedOption) return;
+    
+    if (!questions || questions.length === 0) return;
 
     setIsTransitioning(true);
     
     setTimeout(() => {
-      const newAnswers = [...answers, selectedOption];
+      let answerToSave: string | string[];
+      
+      if (questionType === 'text') {
+        answerToSave = textInput.trim();
+      } else if (questionType === 'multiple') {
+        answerToSave = [...selectedOptions];
+      } else if (questionType === 'single' && (selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)')) {
+        // Handle location with text input
+        answerToSave = locationText.trim() ? `${selectedOption}: ${locationText.trim()}` : selectedOption;
+      } else {
+        answerToSave = selectedOption;
+      }
+      
+      const newAnswers = [...answers, answerToSave];
       setAnswers(newAnswers);
+      
+      // Reset all input states
       setSelectedOption('');
+      setSelectedOptions([]);
+      setTextInput('');
+      setLocationText('');
 
       if (isLastQuestion) {
         setCurrentQuestion(currentQuestion + 1); // Move to city input
@@ -102,8 +152,19 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     } else if (isCityInput) {
       setCurrentQuestion(currentQuestion - 1);
     } else {
+      const prevAnswer = answers[currentQuestion - 1];
       setCurrentQuestion(currentQuestion - 1);
-      setSelectedOption(answers[currentQuestion - 1] || '');
+      
+      // Restore previous answer based on question type
+      const prevQuestionType = questions?.[currentQuestion - 1]?.type || 'single';
+      if (prevQuestionType === 'text') {
+        setTextInput(typeof prevAnswer === 'string' ? prevAnswer : '');
+      } else if (prevQuestionType === 'multiple') {
+        setSelectedOptions(Array.isArray(prevAnswer) ? prevAnswer : []);
+      } else {
+        setSelectedOption(typeof prevAnswer === 'string' ? prevAnswer : '');
+      }
+      
       setAnswers((prev) => prev?.slice(0, -1) || []);
     }
   };
@@ -114,10 +175,15 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     setIsSubmitting(true);
 
     try {
+      // Flatten answers for submission (convert arrays to comma-separated strings)
+      const flattenedAnswers = answers.map(answer => 
+        Array.isArray(answer) ? answer.join(', ') : answer
+      );
+
       const response = await api.submitSurvey({
         category: category.id,
         questions: (questions || []).map(q => q?.id || '').filter(Boolean),
-        answers,
+        answers: flattenedAnswers,
         city: city.trim()
       });
 
@@ -132,6 +198,22 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Check if current question has valid input
+  const hasValidInput = () => {
+    const questionType = getCurrentQuestionType();
+    if (questionType === 'text') return textInput.trim().length > 0;
+    if (questionType === 'multiple') return selectedOptions.length > 0;
+    if (questionType === 'single' && (selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)')) {
+      return selectedOption && locationText.trim().length > 0;
+    }
+    return !!selectedOption;
+  };
+
+  // Check if location text input is needed
+  const needsLocationText = () => {
+    return selectedOption === 'Specific area (text option)' || selectedOption === 'Landmark (text option)';
   };
 
   return (
@@ -174,21 +256,94 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
               <h3 className={styles['question-text']}>
                 {questions?.[currentQuestion]?.text || 'Loading question...'}
               </h3>
+              
+              {/* Hint for multiple selection */}
+              {getCurrentQuestionType() === 'multiple' && (
+                <p className={styles['question-hint']}>Select one or more options</p>
+              )}
 
-              <div className={styles['options-container']}>
-                {(questions?.[currentQuestion]?.options || []).map((option, index) => (
-                  <button
-                    key={index}
-                    className={`${styles['option-button']} ${
-                      selectedOption === option ? styles.selected : ''
-                    }`}
-                    onClick={() => handleSelectOption(option)}
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
+              {/* Text Input Type */}
+              {getCurrentQuestionType() === 'text' && (
+                <div className={styles['text-input-container']}>
+                  <textarea
+                    className={styles['text-area-input']}
+                    placeholder="Type your description here..."
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              )}
+
+              {/* Rating Type */}
+              {getCurrentQuestionType() === 'rating' && (
+                <div className={styles['rating-container']}>
+                  {(questions?.[currentQuestion]?.options || []).map((option, index) => (
+                    <button
+                      key={index}
+                      className={`${styles['rating-button']} ${
+                        selectedOption === option ? styles.selected : ''
+                      }`}
+                      onClick={() => handleSelectOption(option)}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <span className={styles['rating-number']}>{index + 1}</span>
+                      <span className={styles['rating-label']}>{option.split('–')[1]?.trim() || option}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Single Selection Options */}
+              {getCurrentQuestionType() === 'single' && (
+                <div className={styles['options-container']}>
+                  {(questions?.[currentQuestion]?.options || []).map((option, index) => (
+                    <button
+                      key={index}
+                      className={`${styles['option-button']} ${
+                        selectedOption === option ? styles.selected : ''
+                      }`}
+                      onClick={() => handleSelectOption(option)}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                  
+                  {/* Additional text input for location options */}
+                  {needsLocationText() && (
+                    <input
+                      type="text"
+                      className={styles['location-input']}
+                      placeholder={selectedOption === 'Specific area (text option)' ? 'Enter specific area name...' : 'Enter landmark name...'}
+                      value={locationText}
+                      onChange={(e) => setLocationText(e.target.value)}
+                      autoFocus
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Multiple Selection Options */}
+              {getCurrentQuestionType() === 'multiple' && (
+                <div className={styles['options-container']}>
+                  {(questions?.[currentQuestion]?.options || []).map((option, index) => (
+                    <button
+                      key={index}
+                      className={`${styles['option-button']} ${styles['checkbox-option']} ${
+                        selectedOptions.includes(option) ? styles.selected : ''
+                      }`}
+                      onClick={() => handleSelectOption(option)}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <span className={styles['checkbox-indicator']}>
+                        {selectedOptions.includes(option) ? '✓' : ''}
+                      </span>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className={styles['button-container']}>
                 <button className={styles['nav-button']} onClick={handleBack}>
@@ -197,8 +352,8 @@ const SurveySection: React.FC<SurveySectionProps> = ({ category, onComplete, onB
                 <button
                   className={`${styles['nav-button']} ${styles.primary}`}
                   onClick={handleNext}
-                  disabled={!selectedOption}
-                  style={{ opacity: selectedOption ? 1 : 0.4 }}
+                  disabled={!hasValidInput()}
+                  style={{ opacity: hasValidInput() ? 1 : 0.4 }}
                 >
                   {isLastQuestion ? 'Continue' : 'Next'}
                 </button>

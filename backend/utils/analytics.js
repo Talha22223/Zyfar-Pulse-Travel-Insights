@@ -255,9 +255,18 @@ const calculatePainPointIndex = (surveys) => {
   const problems = {};
   
   problemSurveys.forEach(survey => {
-    if (survey.answers && survey.answers[0] && survey.answers[0] !== 'No issues') {
-      const problem = survey.answers[0];
-      problems[problem] = (problems[problem] || 0) + 1;
+    if (survey.answers && survey.answers[0]) {
+      // Q1 can now have multiple problems (comma-separated)
+      const problemAnswer = survey.answers[0];
+      const problemList = problemAnswer.includes(',') 
+        ? problemAnswer.split(',').map(p => p.trim())
+        : [problemAnswer];
+      
+      problemList.forEach(problem => {
+        if (problem && problem !== 'No issues') {
+          problems[problem] = (problems[problem] || 0) + 1;
+        }
+      });
     }
   });
 
@@ -267,4 +276,156 @@ const calculatePainPointIndex = (surveys) => {
     .sort((a, b) => b[1] - a[1])[0];
 
   return topProblem ? topProblem[0] : 'N/A';
+};
+
+// Helper: Calculate severity score for City Intelligence Insight (0-100)
+export const calculateSeverityScore = (surveys) => {
+  const problemSurveys = surveys.filter(s => s.category === 'local_problems');
+  
+  if (problemSurveys.length === 0) return 0;
+
+  const severityScores = {
+    '1 – Very low': 20,
+    '2 – Low': 40,
+    '3 – Moderate': 60,
+    '4 – Serious': 80,
+    '5 – Very serious': 100
+  };
+
+  let totalScore = 0;
+  let count = 0;
+
+  problemSurveys.forEach(survey => {
+    // Q2 is severity rating
+    if (survey.answers && survey.answers[1]) {
+      const severity = survey.answers[1];
+      if (severityScores[severity] !== undefined) {
+        totalScore += severityScores[severity];
+        count++;
+      }
+    }
+  });
+
+  return count > 0 ? Math.round(totalScore / count) : 0;
+};
+
+// Helper: Get area-wise problem distribution
+export const getAreaWiseProblems = (surveys) => {
+  const problemSurveys = surveys.filter(s => s.category === 'local_problems');
+  
+  if (problemSurveys.length === 0) return [];
+
+  const areas = {};
+  
+  problemSurveys.forEach(survey => {
+    // Q3 is location
+    if (survey.answers && survey.answers[2]) {
+      const location = survey.answers[2];
+      areas[location] = (areas[location] || 0) + 1;
+    }
+  });
+
+  return Object.entries(areas)
+    .map(([area, count]) => ({ area, count }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// Helper: Get impact analysis
+export const getImpactAnalysis = (surveys) => {
+  const problemSurveys = surveys.filter(s => s.category === 'local_problems');
+  
+  if (problemSurveys.length === 0) return [];
+
+  const impacts = {};
+  
+  problemSurveys.forEach(survey => {
+    // Q4 is impact (can be multiple, comma-separated)
+    if (survey.answers && survey.answers[3]) {
+      const impactAnswer = survey.answers[3];
+      const impactList = impactAnswer.includes(',')
+        ? impactAnswer.split(',').map(i => i.trim())
+        : [impactAnswer];
+      
+      impactList.forEach(impact => {
+        if (impact) {
+          impacts[impact] = (impacts[impact] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  return Object.entries(impacts)
+    .map(([impact, count]) => ({ impact, count }))
+    .sort((a, b) => b.count - a.count);
+};
+
+// Helper: Get top problems with counts
+export const getTopProblems = (surveys, limit = 10) => {
+  const problemSurveys = surveys.filter(s => s.category === 'local_problems');
+  
+  if (problemSurveys.length === 0) return [];
+
+  const problems = {};
+  
+  problemSurveys.forEach(survey => {
+    if (survey.answers && survey.answers[0]) {
+      const problemAnswer = survey.answers[0];
+      const problemList = problemAnswer.includes(',')
+        ? problemAnswer.split(',').map(p => p.trim())
+        : [problemAnswer];
+      
+      problemList.forEach(problem => {
+        if (problem) {
+          problems[problem] = (problems[problem] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  return Object.entries(problems)
+    .map(([problem, count]) => ({ problem, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+};
+
+// Helper: Get city ranking by problems
+export const getCityProblemRanking = (surveys) => {
+  const problemSurveys = surveys.filter(s => s.category === 'local_problems');
+  
+  if (problemSurveys.length === 0) return { mostProblematic: [], safest: [] };
+
+  const cityProblems = {};
+  const cityCounts = {};
+  
+  problemSurveys.forEach(survey => {
+    const city = survey.city || 'Unknown';
+    cityCounts[city] = (cityCounts[city] || 0) + 1;
+    
+    // Count severity
+    if (survey.answers && survey.answers[1]) {
+      const severityScores = {
+        '1 – Very low': 1,
+        '2 – Low': 2,
+        '3 – Moderate': 3,
+        '4 – Serious': 4,
+        '5 – Very serious': 5
+      };
+      const severity = severityScores[survey.answers[1]] || 3;
+      cityProblems[city] = (cityProblems[city] || 0) + severity;
+    }
+  });
+
+  // Calculate average severity per city
+  const cityRankings = Object.keys(cityCounts).map(city => ({
+    city,
+    count: cityCounts[city],
+    avgSeverity: cityProblems[city] ? (cityProblems[city] / cityCounts[city]).toFixed(2) : 0
+  }));
+
+  const sorted = cityRankings.sort((a, b) => b.avgSeverity - a.avgSeverity);
+  
+  return {
+    mostProblematic: sorted.slice(0, 5),
+    safest: sorted.reverse().slice(0, 5)
+  };
 };

@@ -1,7 +1,7 @@
 export interface SurveyQuestion {
   id: string;
   text: string;
-  type: 'single' | 'multiple';
+  type: 'single' | 'multiple' | 'text' | 'rating';
   options: string[];
 }
 

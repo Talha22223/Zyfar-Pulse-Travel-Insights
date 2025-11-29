@@ -15,7 +15,13 @@ app.use(helmet());
 // CORS configuration
 const allowedOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',') 
-  : ['http://localhost:3003', 'http://localhost:5173', 'https://zyfar-pulse-travel-insights-fronten.vercel.app'];
+  : [
+      'http://localhost:3003', 
+      'http://localhost:5173', 
+      'https://zyfar-pulse-travel-insights-fronten.vercel.app',
+      'https://31.97.203.109',
+      'http://31.97.203.109'
+    ];
 
 const corsOptions = {
   origin: (origin, callback) => {

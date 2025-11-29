@@ -121,27 +121,72 @@ export const SURVEY_CATEGORIES = {
 
   local_problems: {
     id: 'local_problems',
-    title: 'Local Problems',
-    emoji: '⚠️',
-    tagline: 'What challenges did you face?',
+    title: 'City Intelligence Insight',
+    emoji: '🏙️',
+    tagline: "What's happening in your city today?",
     questions: [
       {
         id: 'lp_q1',
-        text: 'What was the biggest issue during your last trip?',
-        type: 'single',
-        options: ['Overpricing', 'Poor infrastructure', 'Language barrier', 'Safety concerns', 'Overcrowding', 'No issues']
+        text: 'What problem did you face today?',
+        type: 'multiple',
+        options: [
+          'Overpricing / Cheating',
+          'Food quality issue',
+          'Hygiene / Cleanliness',
+          'Traffic jam',
+          'Parking problem',
+          'Accident / Unsafe spot',
+          'Fraud / Scam attempt',
+          'Digital scam call/message',
+          'Power cut',
+          'Water problem',
+          'Public disturbance',
+          'Festival crowding',
+          'Bad service experience',
+          'Weather-related problem',
+          'Product cost increased',
+          'Others (specify)'
+        ]
       },
       {
         id: 'lp_q2',
-        text: 'Did you face any transportation problems?',
-        type: 'single',
-        options: ['Yes, major issues', 'Minor inconveniences', 'No problems at all']
+        text: 'Severity of the problem',
+        type: 'rating',
+        options: [
+          '1 – Very low',
+          '2 – Low',
+          '3 – Moderate',
+          '4 – Serious',
+          '5 – Very serious'
+        ]
       },
       {
         id: 'lp_q3',
-        text: 'How was the cleanliness and hygiene?',
+        text: 'Where did this problem occur?',
         type: 'single',
-        options: ['Excellent', 'Good', 'Average', 'Poor']
+        options: [
+          'Your full city',
+          'Specific area (text option)',
+          'Landmark (text option)'
+        ]
+      },
+      {
+        id: 'lp_q4',
+        text: 'How did this affect you?',
+        type: 'multiple',
+        options: [
+          'Time wasted',
+          'Money lost',
+          'Safety risk',
+          'Emotional stress',
+          'No big impact (minor issue)'
+        ]
+      },
+      {
+        id: 'lp_q5',
+        text: 'Describe the issue?',
+        type: 'text',
+        options: []
       }
     ]
   },

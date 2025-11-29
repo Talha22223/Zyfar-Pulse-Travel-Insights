@@ -19,9 +19,9 @@ export const SURVEY_CATEGORIES: any = {
   },
   local_problems: {
     id: 'local_problems',
-    title: 'Local Problems',
-    emoji: '⚠️',
-    tagline: 'What challenges did you face?'
+    title: 'City Intelligence Insight',
+    emoji: '🏙️',
+    tagline: "What's happening in your city today?"
   },
   price_sensitivity: {
     id: 'price_sensitivity',
